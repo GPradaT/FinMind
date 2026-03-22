@@ -229,7 +229,14 @@ def generate_digest(user_id, reference_date=None):
         method=result.get("method", "unknown"),
     )
     db.session.add(digest)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        # Race condition: another request created it first, return that one
+        return WeeklyDigest.query.filter_by(
+            user_id=user_id, week_start=start
+        ).first()
 
     return digest
 
