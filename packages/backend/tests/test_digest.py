@@ -1,14 +1,10 @@
 """Tests for weekly digest feature."""
 
-import json
 from datetime import date, timedelta
 
-import pytest
-
 from app.extensions import db
-from app.models import Expense, Category, WeeklyDigest
+from app.models import Expense, Category
 from app.services.digest import (
-    generate_digest,
     _week_boundaries,
     _build_digest_data,
     _heuristic_summary,

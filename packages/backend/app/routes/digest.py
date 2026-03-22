@@ -7,14 +7,14 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..models import WeeklyDigest
 from ..services.digest import generate_digest
 
-bp = Blueprint("digest", __name__, url_prefix="/digest")
+bp = Blueprint("digest", __name__)
 
 
 @bp.get("/latest")
 @jwt_required()
 def get_latest_digest():
     """Get the most recent weekly digest for the current user."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     digest = (
         WeeklyDigest.query.filter_by(user_id=user_id)
         .order_by(WeeklyDigest.week_start.desc())
@@ -29,9 +29,9 @@ def get_latest_digest():
 @jwt_required()
 def get_digest_history():
     """Get digest history for the current user."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     limit = request.args.get("limit", 10, type=int)
-    limit = min(limit, 52)  # cap at 1 year of weekly digests
+    limit = max(1, min(limit, 52))
 
     digests = (
         WeeklyDigest.query.filter_by(user_id=user_id)
@@ -46,7 +46,7 @@ def get_digest_history():
 @jwt_required()
 def trigger_digest():
     """Manually trigger digest generation for the current user."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     digest = generate_digest(user_id)
     if not digest:
         return jsonify(error="No transactions found for last week"), 404

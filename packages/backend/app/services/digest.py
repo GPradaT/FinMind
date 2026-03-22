@@ -36,6 +36,7 @@ def _weekly_expenses(user_id, start, end):
             func.coalesce(func.sum(Expense.amount), 0),
             func.count(Expense.id),
         )
+        .select_from(Expense)
         .outerjoin(Category, Expense.category_id == Category.id)
         .filter(
             Expense.user_id == user_id,
@@ -168,7 +169,7 @@ def _ai_summary(data, api_key, model):
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with url_request.urlopen(req, timeout=15) as resp:
+    with url_request.urlopen(req, timeout=15) as resp:  # nosec B310
         payload = json.loads(resp.read().decode("utf-8"))
 
     text = (
