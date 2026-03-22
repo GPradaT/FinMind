@@ -8,6 +8,11 @@ VALID_ACCOUNT_TYPES = {"checking", "savings", "credit", "cash", "investment"}
 
 
 def create_account(user_id, name, account_type, currency="INR", balance=0, color=None):
+    name = (name or "").strip()
+    account_type = (account_type or "").strip().lower()
+
+    if not name:
+        return None, "Name is required"
     if account_type not in VALID_ACCOUNT_TYPES:
         return None, f"Invalid account type. Must be one of: {', '.join(sorted(VALID_ACCOUNT_TYPES))}"
 
@@ -38,17 +43,23 @@ def get_account(account_id, user_id):
 def update_account(account_id, user_id, **kwargs):
     account = get_account(account_id, user_id)
     if not account:
-        return None
+        return None, "Account not found"
 
-    if "account_type" in kwargs and kwargs["account_type"] not in VALID_ACCOUNT_TYPES:
-        return None
+    if "account_type" in kwargs:
+        at = (kwargs["account_type"] or "").strip().lower()
+        if at not in VALID_ACCOUNT_TYPES:
+            return None, f"Invalid account type. Must be one of: {', '.join(sorted(VALID_ACCOUNT_TYPES))}"
+        kwargs["account_type"] = at
+
+    if "name" in kwargs:
+        kwargs["name"] = (kwargs["name"] or "").strip()
 
     for key in ("name", "account_type", "currency", "balance", "is_active", "color"):
         if key in kwargs and kwargs[key] is not None:
             setattr(account, key, kwargs[key])
 
     db.session.commit()
-    return account
+    return account, None
 
 
 def delete_account(account_id, user_id):
@@ -71,13 +82,15 @@ def get_overview(user_id):
         by_type[a.account_type]["count"] += 1
         by_type[a.account_type]["total"] += float(a.balance)
 
-    # Net worth = assets - liabilities (credit accounts are negative)
+    # Net worth: assets minus liabilities.
+    # Credit account balances represent amounts owed (stored as positive numbers),
+    # so they are subtracted from total assets to compute net worth.
     assets = sum(float(a.balance) for a in accounts if a.account_type != "credit")
     liabilities = sum(float(a.balance) for a in accounts if a.account_type == "credit")
 
     return {
         "total_balance": round(total_balance, 2),
-        "net_worth": round(assets - abs(liabilities), 2),
+        "net_worth": round(assets - liabilities, 2),
         "account_count": len(accounts),
         "by_type": {k: {"count": v["count"], "total": round(v["total"], 2)} for k, v in by_type.items()},
         "accounts": [serialize_account(a) for a in accounts],

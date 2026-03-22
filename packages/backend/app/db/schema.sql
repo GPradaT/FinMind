@@ -129,6 +129,8 @@ CREATE TABLE IF NOT EXISTS financial_accounts (
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE INDEX IF NOT EXISTS idx_financial_accounts_user ON financial_accounts(user_id, is_active);
+
 CREATE TABLE IF NOT EXISTS audit_logs (
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES users(id) ON DELETE SET NULL,

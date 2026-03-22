@@ -63,9 +63,10 @@ def get_account(account_id):
 def update_account(account_id):
     user_id = int(get_jwt_identity())
     data = request.get_json() or {}
-    account = account_service.update_account(account_id, user_id, **data)
-    if not account:
-        return jsonify(error="Account not found or invalid data"), 404
+    account, error = account_service.update_account(account_id, user_id, **data)
+    if error:
+        status_code = 404 if "not found" in error.lower() else 400
+        return jsonify(error=error), status_code
     return jsonify(account_service.serialize_account(account)), 200
 
 
