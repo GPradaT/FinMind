@@ -130,6 +130,8 @@ CREATE TABLE IF NOT EXISTS savings_goals (
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE INDEX IF NOT EXISTS idx_savings_goals_user_status ON savings_goals(user_id, status, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS goal_contributions (
   id SERIAL PRIMARY KEY,
   goal_id INT NOT NULL REFERENCES savings_goals(id) ON DELETE CASCADE,
@@ -138,6 +140,8 @@ CREATE TABLE IF NOT EXISTS goal_contributions (
   contributed_at DATE NOT NULL DEFAULT CURRENT_DATE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_goal_contributions_goal ON goal_contributions(goal_id, contributed_at DESC);
 
 CREATE TABLE IF NOT EXISTS audit_logs (
   id SERIAL PRIMARY KEY,
