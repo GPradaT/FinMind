@@ -1,11 +1,7 @@
 """Financial accounts management service."""
 
-from decimal import Decimal
-
-from sqlalchemy import func, extract
-
 from ..extensions import db
-from ..models import FinancialAccount, Expense
+from ..models import FinancialAccount
 
 
 VALID_ACCOUNT_TYPES = {"checking", "savings", "credit", "cash", "investment"}
