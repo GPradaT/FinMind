@@ -6,13 +6,13 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from ..services import goals as goal_service
 
-bp = Blueprint("goals", __name__, url_prefix="/goals")
+bp = Blueprint("goals", __name__)
 
 
 @bp.get("/")
 @jwt_required()
 def list_goals():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     status = request.args.get("status")
     items = goal_service.get_goals(user_id, status)
     return jsonify([_serialize_goal(g) for g in items]), 200
@@ -21,7 +21,7 @@ def list_goals():
 @bp.post("/")
 @jwt_required()
 def create_goal():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data or not data.get("name") or not data.get("target_amount"):
@@ -51,7 +51,7 @@ def create_goal():
 @bp.get("/<int:goal_id>")
 @jwt_required()
 def get_goal(goal_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     goal = goal_service.get_goal(goal_id, user_id)
     if not goal:
         return jsonify(error="Goal not found"), 404
@@ -61,7 +61,7 @@ def get_goal(goal_id):
 @bp.put("/<int:goal_id>")
 @jwt_required()
 def update_goal(goal_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json() or {}
     goal = goal_service.update_goal(goal_id, user_id, **data)
     if not goal:
@@ -72,7 +72,7 @@ def update_goal(goal_id):
 @bp.delete("/<int:goal_id>")
 @jwt_required()
 def cancel_goal(goal_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     goal = goal_service.cancel_goal(goal_id, user_id)
     if not goal:
         return jsonify(error="Goal not found"), 404
@@ -82,7 +82,7 @@ def cancel_goal(goal_id):
 @bp.get("/<int:goal_id>/progress")
 @jwt_required()
 def get_progress(goal_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     progress = goal_service.get_progress(goal_id, user_id)
     if not progress:
         return jsonify(error="Goal not found"), 404
@@ -92,7 +92,7 @@ def get_progress(goal_id):
 @bp.post("/<int:goal_id>/contribute")
 @jwt_required()
 def add_contribution(goal_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data or not data.get("amount"):
@@ -109,7 +109,8 @@ def add_contribution(goal_id):
         note=data.get("note"),
     )
     if error:
-        return jsonify(error=error), 400
+        status_code = 404 if "not found" in error.lower() else 400
+        return jsonify(error=error), status_code
 
     return jsonify({
         "id": contribution.id,
@@ -123,7 +124,7 @@ def add_contribution(goal_id):
 @bp.get("/<int:goal_id>/contributions")
 @jwt_required()
 def list_contributions(goal_id):
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     items = goal_service.get_contributions(goal_id, user_id)
     if items is None:
         return jsonify(error="Goal not found"), 404

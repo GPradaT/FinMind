@@ -80,7 +80,7 @@ def get_progress(goal_id, user_id):
         "name": goal.name,
         "target": target,
         "current": current,
-        "remaining": round(target - current, 2),
+        "remaining": round(max(target - current, 0), 2),
         "progress_pct": pct,
         "status": goal.status,
         "on_track": True,
