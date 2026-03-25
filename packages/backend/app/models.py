@@ -144,7 +144,9 @@ class SavingsGoal(db.Model):
     deadline = db.Column(db.Date, nullable=True)
     status = db.Column(db.String(20), default=GoalStatus.ACTIVE.value, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
 
 
 class GoalContribution(db.Model):

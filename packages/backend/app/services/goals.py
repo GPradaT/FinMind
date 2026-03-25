@@ -47,8 +47,11 @@ def add_contribution(goal_id, user_id, amount, note=None):
 
     # Atomic DB-side update to avoid race conditions
     from sqlalchemy import text
+
     db.session.execute(
-        text("UPDATE savings_goals SET current_amount = current_amount + :amt WHERE id = :gid"),
+        text(
+            "UPDATE savings_goals SET current_amount = current_amount + :amt WHERE id = :gid"
+        ),
         {"amt": float(amount), "gid": goal_id},
     )
     db.session.flush()
@@ -103,7 +106,9 @@ def get_progress(goal_id, user_id):
             result["daily_savings_needed"] = daily_needed
             # Check if current savings pace is sufficient
             days_elapsed = (date.today() - goal.created_at.date()).days or 1
-            expected_pct = (days_elapsed / max((goal.deadline - goal.created_at.date()).days, 1)) * 100
+            expected_pct = (
+                days_elapsed / max((goal.deadline - goal.created_at.date()).days, 1)
+            ) * 100
             if pct < expected_pct * 0.8:  # more than 20% behind schedule
                 result["on_track"] = False
         elif days_left <= 0 and current < target:
@@ -112,11 +117,13 @@ def get_progress(goal_id, user_id):
     # Milestones
     milestones = []
     for pct_mark in [25, 50, 75, 100]:
-        milestones.append({
-            "pct": pct_mark,
-            "reached": pct >= pct_mark,
-            "amount": round(target * pct_mark / 100, 2),
-        })
+        milestones.append(
+            {
+                "pct": pct_mark,
+                "reached": pct >= pct_mark,
+                "amount": round(target * pct_mark / 100, 2),
+            }
+        )
     result["milestones"] = milestones
 
     return result

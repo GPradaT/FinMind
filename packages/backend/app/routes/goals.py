@@ -112,13 +112,18 @@ def add_contribution(goal_id):
         status_code = 404 if "not found" in error.lower() else 400
         return jsonify(error=error), status_code
 
-    return jsonify({
-        "id": contribution.id,
-        "goal_id": contribution.goal_id,
-        "amount": float(contribution.amount),
-        "note": contribution.note,
-        "contributed_at": contribution.contributed_at.isoformat(),
-    }), 201
+    return (
+        jsonify(
+            {
+                "id": contribution.id,
+                "goal_id": contribution.goal_id,
+                "amount": float(contribution.amount),
+                "note": contribution.note,
+                "contributed_at": contribution.contributed_at.isoformat(),
+            }
+        ),
+        201,
+    )
 
 
 @bp.get("/<int:goal_id>/contributions")
@@ -128,12 +133,20 @@ def list_contributions(goal_id):
     items = goal_service.get_contributions(goal_id, user_id)
     if items is None:
         return jsonify(error="Goal not found"), 404
-    return jsonify([{
-        "id": c.id,
-        "amount": float(c.amount),
-        "note": c.note,
-        "contributed_at": c.contributed_at.isoformat(),
-    } for c in items]), 200
+    return (
+        jsonify(
+            [
+                {
+                    "id": c.id,
+                    "amount": float(c.amount),
+                    "note": c.note,
+                    "contributed_at": c.contributed_at.isoformat(),
+                }
+                for c in items
+            ]
+        ),
+        200,
+    )
 
 
 def _serialize_goal(goal):
