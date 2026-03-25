@@ -14,7 +14,10 @@ def create_account(user_id, name, account_type, currency="INR", balance=0, color
     if not name:
         return None, "Name is required"
     if account_type not in VALID_ACCOUNT_TYPES:
-        return None, f"Invalid account type. Must be one of: {', '.join(sorted(VALID_ACCOUNT_TYPES))}"
+        return (
+            None,
+            f"Invalid account type. Must be one of: {', '.join(sorted(VALID_ACCOUNT_TYPES))}",
+        )
 
     account = FinancialAccount(
         user_id=user_id,
@@ -48,7 +51,10 @@ def update_account(account_id, user_id, **kwargs):
     if "account_type" in kwargs:
         at = (kwargs["account_type"] or "").strip().lower()
         if at not in VALID_ACCOUNT_TYPES:
-            return None, f"Invalid account type. Must be one of: {', '.join(sorted(VALID_ACCOUNT_TYPES))}"
+            return (
+                None,
+                f"Invalid account type. Must be one of: {', '.join(sorted(VALID_ACCOUNT_TYPES))}",
+            )
         kwargs["account_type"] = at
 
     if "name" in kwargs:
@@ -92,7 +98,10 @@ def get_overview(user_id):
         "total_balance": round(total_balance, 2),
         "net_worth": round(assets - liabilities, 2),
         "account_count": len(accounts),
-        "by_type": {k: {"count": v["count"], "total": round(v["total"], 2)} for k, v in by_type.items()},
+        "by_type": {
+            k: {"count": v["count"], "total": round(v["total"], 2)}
+            for k, v in by_type.items()
+        },
         "accounts": [serialize_account(a) for a in accounts],
     }
 

@@ -3,11 +3,15 @@
 
 class TestAccountsCRUD:
     def test_create_account(self, client, auth_header):
-        r = client.post("/accounts/", json={
-            "name": "Main Checking",
-            "account_type": "checking",
-            "balance": 5000,
-        }, headers=auth_header)
+        r = client.post(
+            "/accounts/",
+            json={
+                "name": "Main Checking",
+                "account_type": "checking",
+                "balance": 5000,
+            },
+            headers=auth_header,
+        )
         assert r.status_code == 201
         data = r.get_json()
         assert data["name"] == "Main Checking"
@@ -15,9 +19,11 @@ class TestAccountsCRUD:
         assert data["is_active"]
 
     def test_create_invalid_type(self, client, auth_header):
-        r = client.post("/accounts/", json={
-            "name": "Bad", "account_type": "invalid"
-        }, headers=auth_header)
+        r = client.post(
+            "/accounts/",
+            json={"name": "Bad", "account_type": "invalid"},
+            headers=auth_header,
+        )
         assert r.status_code == 400
 
     def test_create_missing_fields(self, client, auth_header):
@@ -25,15 +31,27 @@ class TestAccountsCRUD:
         assert r.status_code == 400
 
     def test_list_accounts(self, client, auth_header):
-        client.post("/accounts/", json={"name": "A1", "account_type": "checking"}, headers=auth_header)
-        client.post("/accounts/", json={"name": "A2", "account_type": "savings"}, headers=auth_header)
+        client.post(
+            "/accounts/",
+            json={"name": "A1", "account_type": "checking"},
+            headers=auth_header,
+        )
+        client.post(
+            "/accounts/",
+            json={"name": "A2", "account_type": "savings"},
+            headers=auth_header,
+        )
 
         r = client.get("/accounts/", headers=auth_header)
         assert r.status_code == 200
         assert len(r.get_json()) == 2
 
     def test_get_account(self, client, auth_header):
-        r = client.post("/accounts/", json={"name": "Test", "account_type": "cash"}, headers=auth_header)
+        r = client.post(
+            "/accounts/",
+            json={"name": "Test", "account_type": "cash"},
+            headers=auth_header,
+        )
         aid = r.get_json()["id"]
 
         r = client.get(f"/accounts/{aid}", headers=auth_header)
@@ -41,16 +59,28 @@ class TestAccountsCRUD:
         assert r.get_json()["account_type"] == "cash"
 
     def test_update_account(self, client, auth_header):
-        r = client.post("/accounts/", json={"name": "Old", "account_type": "checking"}, headers=auth_header)
+        r = client.post(
+            "/accounts/",
+            json={"name": "Old", "account_type": "checking"},
+            headers=auth_header,
+        )
         aid = r.get_json()["id"]
 
-        r = client.put(f"/accounts/{aid}", json={"name": "New", "balance": 999}, headers=auth_header)
+        r = client.put(
+            f"/accounts/{aid}",
+            json={"name": "New", "balance": 999},
+            headers=auth_header,
+        )
         assert r.status_code == 200
         assert r.get_json()["name"] == "New"
         assert r.get_json()["balance"] == 999
 
     def test_deactivate_account(self, client, auth_header):
-        r = client.post("/accounts/", json={"name": "Bye", "account_type": "savings"}, headers=auth_header)
+        r = client.post(
+            "/accounts/",
+            json={"name": "Bye", "account_type": "savings"},
+            headers=auth_header,
+        )
         aid = r.get_json()["id"]
 
         r = client.delete(f"/accounts/{aid}", headers=auth_header)
@@ -74,15 +104,21 @@ class TestOverview:
         assert data["account_count"] == 0
 
     def test_overview_with_accounts(self, client, auth_header):
-        client.post("/accounts/", json={
-            "name": "Checking", "account_type": "checking", "balance": 3000
-        }, headers=auth_header)
-        client.post("/accounts/", json={
-            "name": "Savings", "account_type": "savings", "balance": 10000
-        }, headers=auth_header)
-        client.post("/accounts/", json={
-            "name": "Credit Card", "account_type": "credit", "balance": 2000
-        }, headers=auth_header)
+        client.post(
+            "/accounts/",
+            json={"name": "Checking", "account_type": "checking", "balance": 3000},
+            headers=auth_header,
+        )
+        client.post(
+            "/accounts/",
+            json={"name": "Savings", "account_type": "savings", "balance": 10000},
+            headers=auth_header,
+        )
+        client.post(
+            "/accounts/",
+            json={"name": "Credit Card", "account_type": "credit", "balance": 2000},
+            headers=auth_header,
+        )
 
         r = client.get("/accounts/overview", headers=auth_header)
         assert r.status_code == 200
@@ -96,14 +132,18 @@ class TestOverview:
         assert len(data["accounts"]) == 3
 
     def test_overview_excludes_inactive(self, client, auth_header):
-        r = client.post("/accounts/", json={
-            "name": "Active", "account_type": "checking", "balance": 1000
-        }, headers=auth_header)
+        r = client.post(
+            "/accounts/",
+            json={"name": "Active", "account_type": "checking", "balance": 1000},
+            headers=auth_header,
+        )
         active_id = r.get_json()["id"]
 
-        r = client.post("/accounts/", json={
-            "name": "Inactive", "account_type": "savings", "balance": 5000
-        }, headers=auth_header)
+        r = client.post(
+            "/accounts/",
+            json={"name": "Inactive", "account_type": "savings", "balance": 5000},
+            headers=auth_header,
+        )
         inactive_id = r.get_json()["id"]
         client.delete(f"/accounts/{inactive_id}", headers=auth_header)
 
