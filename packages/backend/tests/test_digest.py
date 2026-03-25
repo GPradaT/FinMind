@@ -148,9 +148,7 @@ class TestDigestEndpoints:
     def test_idempotent_generation(self, app_fixture, client, auth_header):
         with app_fixture.app_context():
             start, _ = _week_boundaries()
-            db.session.add(
-                Expense(user_id=1, amount=100, spent_at=start)
-            )
+            db.session.add(Expense(user_id=1, amount=100, spent_at=start))
             db.session.commit()
 
         r1 = client.post("/digest/generate", headers=auth_header)

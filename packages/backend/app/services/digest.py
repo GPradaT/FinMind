@@ -48,7 +48,11 @@ def _weekly_expenses(user_id, start, end):
         .all()
     )
     return [
-        {"category": name or "Uncategorized", "total": float(total), "count": int(count)}
+        {
+            "category": name or "Uncategorized",
+            "total": float(total),
+            "count": int(count),
+        }
         for name, total, count in rows
     ]
 
@@ -130,13 +134,19 @@ def _heuristic_summary(data):
     if data["top_categories"]:
         lines.append("Top categories:")
         for cat in data["top_categories"][:3]:
-            lines.append(f"  - {cat['category']}: {cat['total']:.2f} ({cat['count']} txns)")
+            lines.append(
+                f"  - {cat['category']}: {cat['total']:.2f} ({cat['count']} txns)"
+            )
 
     tips = []
     if data["net_flow"] < 0:
-        tips.append("Your expenses exceeded income this week. Review discretionary spending.")
+        tips.append(
+            "Your expenses exceeded income this week. Review discretionary spending."
+        )
     if data["week_over_week_change_pct"] > 20:
-        tips.append("Spending jumped significantly. Check if any large one-time purchases drove this.")
+        tips.append(
+            "Spending jumped significantly. Check if any large one-time purchases drove this."
+        )
     if not tips:
         tips.append("Good week! Keep maintaining your spending habits.")
 
@@ -165,7 +175,8 @@ def _ai_summary(data, api_key, model):
     ).encode("utf-8")
 
     req = url_request.Request(
-        url=url, data=body,
+        url=url,
+        data=body,
         headers={"Content-Type": "application/json"},
         method="POST",
     )
@@ -182,6 +193,7 @@ def _ai_summary(data, api_key, model):
     # Try to parse JSON from response
     try:
         from .ai import _extract_json_object
+
         parsed = _extract_json_object(text)
         parsed["method"] = "gemini"
         return parsed
@@ -194,9 +206,7 @@ def generate_digest(user_id, reference_date=None):
     start, end = _week_boundaries(reference_date)
 
     # Check if digest already exists for this week
-    existing = WeeklyDigest.query.filter_by(
-        user_id=user_id, week_start=start
-    ).first()
+    existing = WeeklyDigest.query.filter_by(user_id=user_id, week_start=start).first()
     if existing:
         return existing
 
@@ -213,7 +223,9 @@ def generate_digest(user_id, reference_date=None):
         try:
             result = _ai_summary(data, api_key, model)
         except Exception:
-            logger.warning("Gemini digest failed, falling back to heuristic", exc_info=True)
+            logger.warning(
+                "Gemini digest failed, falling back to heuristic", exc_info=True
+            )
             result = _heuristic_summary(data)
     else:
         result = _heuristic_summary(data)
@@ -234,9 +246,7 @@ def generate_digest(user_id, reference_date=None):
     except Exception:
         db.session.rollback()
         # Race condition: another request created it first, return that one
-        return WeeklyDigest.query.filter_by(
-            user_id=user_id, week_start=start
-        ).first()
+        return WeeklyDigest.query.filter_by(user_id=user_id, week_start=start).first()
 
     return digest
 
